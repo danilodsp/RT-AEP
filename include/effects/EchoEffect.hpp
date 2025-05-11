@@ -1,4 +1,7 @@
+
 #pragma once
+#include <atomic>
+#include <memory>
 #include "AudioEffect.hpp"
 #include <vector>
 
@@ -14,9 +17,10 @@ public:
 
     // Test utility: process a mono buffer in-place
     void testProcessMono(float* buffer, std::size_t frameCount);
+public:
+    std::atomic<int> delaySamples_;
+    std::atomic<float> feedback_;
 private:
     std::vector<float> buffer_;
-    int delaySamples_;
-    float feedback_;
     std::size_t writeIndex_;
 };
