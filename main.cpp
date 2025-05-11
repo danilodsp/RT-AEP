@@ -35,10 +35,13 @@ void testEffects() {
     std::cout << "...\n";
 }
 
-// Entry point for RT-AEP: initializes and runs the audio engine
+
+#include "gui/GUIManager.hpp"
+#include <thread>
+
 int main() {
-    std::cout << "Testing effects on synthetic buffer...\n";
-    testEffects();
+    //std::cout << "Testing effects on synthetic buffer...\n";
+    //testEffects();
 
     AudioEngine engine;
     if (!engine.initialize()) {
@@ -49,8 +52,17 @@ int main() {
         std::cerr << "Failed to start AudioEngine." << std::endl;
         return 1;
     }
-    std::cout << "Press Enter to stop and exit..." << std::endl;
-    std::cin.get(); // user input to exit
+
+    // Start GUI
+    GUIManager gui;
+    if (!gui.initialize()) {
+        std::cerr << "Failed to initialize GUI." << std::endl;
+        engine.stop();
+        return 1;
+    }
+    gui.renderLoop(engine.getEffectChain());
+    gui.shutdown();
+
     engine.stop();
     return 0;
 }
