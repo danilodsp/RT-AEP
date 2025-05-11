@@ -14,6 +14,8 @@ public:
     bool initialize();
     bool start();
     bool stop();
+public:
+    std::shared_ptr<EffectChain> getEffectChain();
 private:
     PaStream* stream_;
     std::atomic<bool> running_;

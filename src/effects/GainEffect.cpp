@@ -12,16 +12,17 @@ void GainEffect::testProcessMono(float* buffer, std::size_t frameCount) {
 GainEffect::GainEffect(float gain) : gain_(gain) {}
 
 void GainEffect::setGain(float gain) {
-    gain_ = gain;
+    gain_.store(gain);
 }
 
 float GainEffect::getGain() const {
-    return gain_;
+    return gain_.load();
 }
 
 void GainEffect::process(float* input, float* output, std::size_t frameCount, int numChannels) {
     std::size_t total = frameCount * numChannels;
+    float g = gain_.load();
     for (std::size_t i = 0; i < total; ++i) {
-        output[i] = input[i] * gain_;
+        output[i] = input[i] * g;
     }
 }
