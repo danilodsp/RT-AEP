@@ -15,17 +15,18 @@ void DistortionEffect::testProcessMono(float* buffer, std::size_t frameCount) {
 DistortionEffect::DistortionEffect(float drive) : drive_(drive) {}
 
 void DistortionEffect::setDrive(float drive) {
-    drive_ = drive;
+    drive_.store(drive);
 }
 
 float DistortionEffect::getDrive() const {
-    return drive_;
+    return drive_.load();
 }
 
 void DistortionEffect::process(float* input, float* output, std::size_t frameCount, int numChannels) {
     std::size_t total = frameCount * numChannels;
+    float d = drive_.load();
     for (std::size_t i = 0; i < total; ++i) {
-        float x = input[i] * drive_;
+        float x = input[i] * d;
         // Hard clip
         if (x > 1.0f) x = 1.0f;
         else if (x < -1.0f) x = -1.0f;

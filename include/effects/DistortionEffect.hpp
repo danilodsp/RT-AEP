@@ -1,4 +1,7 @@
+
 #pragma once
+#include <atomic>
+#include <memory>
 #include "AudioEffect.hpp"
 
 /**
@@ -13,6 +16,7 @@ public:
 
     // Test utility: process a buffer in-place (mono)
     void testProcessMono(float* buffer, std::size_t frameCount);
+public:
+    std::atomic<float> drive_;
 private:
-    float drive_;
 };
