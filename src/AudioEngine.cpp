@@ -1,5 +1,10 @@
 
 #include "AudioEngine.hpp"
+#include <memory>
+
+std::shared_ptr<EffectChain> AudioEngine::getEffectChain() { return effectChain_; }
+
+#include "AudioEngine.hpp"
 #include <iostream>
 #include <cstring>
 #include <memory>
