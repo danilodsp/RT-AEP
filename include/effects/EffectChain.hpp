@@ -1,6 +1,8 @@
+
 #pragma once
-#include <vector>
+#include <atomic>
 #include <memory>
+#include <vector>
 #include "AudioEffect.hpp"
 
 /**
@@ -8,6 +10,15 @@
  */
 class EffectChain {
 public:
+    // Utility: get effect by type (returns nullptr if not found)
+    template<typename T>
+    std::shared_ptr<T> getEffectByType() {
+        for (auto& e : effects_) {
+            auto ptr = std::dynamic_pointer_cast<T>(e);
+            if (ptr) return ptr;
+        }
+        return nullptr;
+    }
     EffectChain();
     ~EffectChain();
 
