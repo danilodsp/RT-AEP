@@ -1,9 +1,22 @@
+
+#include "AudioEngine.hpp"
+#include <memory>
+
+std::shared_ptr<EffectChain> AudioEngine::getEffectChain() { return effectChain_; }
+
 #include "AudioEngine.hpp"
 #include <iostream>
 #include <cstring>
+#include <memory>
+#include "effects/EffectChain.hpp"
+#include "effects/GainEffect.hpp"
+#include "effects/EchoEffect.hpp"
+#include "effects/DistortionEffect.hpp"
 
 // Constructor: initializes members
-AudioEngine::AudioEngine() : stream_(nullptr), running_(false) {}
+AudioEngine::AudioEngine() : stream_(nullptr), running_(false) {
+    effectChain_ = std::make_shared<EffectChain>();
+}
 
 // Destructor: ensures stream is stopped and PortAudio is terminated
 AudioEngine::~AudioEngine() {
@@ -19,6 +32,7 @@ bool AudioEngine::initialize() {
         return false;
     }
     printDiagnostics();
+    setupDefaultEffects();
     return true;
 }
 
@@ -69,20 +83,36 @@ bool AudioEngine::stop() {
     return true;
 }
 
-// PortAudio callback: copy input directly to output (passthrough)
+// PortAudio callback: process audio through EffectChain
 int AudioEngine::paCallback(const void* input, void* output,
                            unsigned long frameCount,
                            const PaStreamCallbackTimeInfo* /*timeInfo*/,
                            PaStreamCallbackFlags /*statusFlags*/,
-                           void* /*userData*/) {
-    const float* in = static_cast<const float*>(input);
+                           void* userData) {
+    AudioEngine* engine = static_cast<AudioEngine*>(userData);
     float* out = static_cast<float*>(output);
-    if (in && out) {
-        std::memcpy(out, in, frameCount * 2 * sizeof(float));
-    } else if (out) {
+    const float* in = static_cast<const float*>(input);
+    if (!out) return paContinue;
+    if (!in) {
         std::memset(out, 0, frameCount * 2 * sizeof(float));
+        return paContinue;
+    }
+    // Use effect chain
+    if (engine && engine->effectChain_) {
+        // Cast away const for input (safe: not modified)
+        engine->effectChain_->process(const_cast<float*>(in), out, frameCount, 2);
+    } else {
+        std::memcpy(out, in, frameCount * 2 * sizeof(float));
     }
     return paContinue;
+}
+// Setup default effects: Gain, Echo, Distortion
+void AudioEngine::setupDefaultEffects() {
+    if (!effectChain_) return;
+    effectChain_->clearEffects();
+    effectChain_->addEffect(std::make_shared<GainEffect>(1.0f));
+    effectChain_->addEffect(std::make_shared<EchoEffect>(500, 0.4f));
+    effectChain_->addEffect(std::make_shared<DistortionEffect>(1.5f));
 }
 
 // Print PortAudio version, device names, and latency

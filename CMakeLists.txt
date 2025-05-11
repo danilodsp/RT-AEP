@@ -16,8 +16,13 @@ else()
     message(FATAL_ERROR "PORTAUDIO_PATH environment variable not set.")
 endif()
 
+
+# Add GLFW (external)
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/glfw ${CMAKE_BINARY_DIR}/external/glfw-build EXCLUDE_FROM_ALL)
+
 # Add internal project include dir
 add_subdirectory(src)
+add_subdirectory(gui)
 
 # Add the main executable
 add_executable(rt-aep main.cpp)
@@ -26,6 +31,7 @@ add_executable(rt-aep main.cpp)
 target_include_directories(rt-aep PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${PORTAUDIO_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/gui
 )
 
 # Link directories (needed for .lib)
@@ -34,5 +40,6 @@ link_directories(${PORTAUDIO_LIB_DIR})
 # Link libraries
 target_link_libraries(rt-aep PRIVATE
     AudioEngine
+    gui
     ${PORTAUDIO_LIB}
 )

@@ -3,20 +3,28 @@
 #include <atomic>
 
 // AudioEngine: Manages PortAudio stream for real-time audio passthrough
+
+#include <memory>
+#include "effects/EffectChain.hpp"
+
 class AudioEngine {
 public:
-    AudioEngine(); // Constructor
-    ~AudioEngine(); // Destructor
-    bool initialize(); // Initialize PortAudio and diagnostics
-    bool start();      // Start audio stream
-    bool stop();       // Stop audio stream
+    AudioEngine();
+    ~AudioEngine();
+    bool initialize();
+    bool start();
+    bool stop();
+public:
+    std::shared_ptr<EffectChain> getEffectChain();
 private:
-    PaStream* stream_;                // PortAudio stream handle
-    std::atomic<bool> running_;       // Thread-safe running flag
+    PaStream* stream_;
+    std::atomic<bool> running_;
+    std::shared_ptr<EffectChain> effectChain_;
     static int paCallback(const void* input, void* output,
                          unsigned long frameCount,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
-                         void* userData); // Audio callback
-    void printDiagnostics();           // Print device/latency info
+                         void* userData);
+    void printDiagnostics();
+    void setupDefaultEffects();
 };
