@@ -4,6 +4,12 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include "effects/EffectChain.hpp"
+#include <memory>
+
+// Forward declarations for new effects and visualization
+class ReverbEffect;
+class PitchShifterEffect;
+class Visualizer;
 
 // GUIManager: Manages Dear ImGui + GLFW + OpenGL GUI for RT-AEP
 class GUIManager {

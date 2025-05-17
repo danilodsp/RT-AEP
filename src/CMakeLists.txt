@@ -1,13 +1,20 @@
 
 # Add DSP effect sources
+
 set(DSP_EFFECT_SOURCES
     effects/EffectChain.cpp
     effects/GainEffect.cpp
     effects/EchoEffect.cpp
     effects/DistortionEffect.cpp
+    effects/ReverbEffect.cpp
+    effects/PitchShifterEffect.cpp
 )
 
-add_library(AudioEngine STATIC AudioEngine.cpp ${DSP_EFFECT_SOURCES})
+set(VISUALIZATION_SOURCES
+    ../visualization/Visualizer.cpp
+)
+
+add_library(AudioEngine STATIC AudioEngine.cpp ${DSP_EFFECT_SOURCES} ${VISUALIZATION_SOURCES})
 
 # Add headers and PortAudio headers
 target_include_directories(AudioEngine
