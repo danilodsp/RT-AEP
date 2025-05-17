@@ -6,9 +6,13 @@
 #include <iostream>
 #include <memory>
 #include "effects/EffectChain.hpp"
+
 #include "effects/GainEffect.hpp"
 #include "effects/EchoEffect.hpp"
 #include "effects/DistortionEffect.hpp"
+#include "effects/ReverbEffect.hpp"
+#include "effects/PitchShifterEffect.hpp"
+#include "../visualization/Visualizer.hpp"
 
 GUIManager::GUIManager() {}
 GUIManager::~GUIManager() { shutdown(); }
@@ -65,6 +69,16 @@ void GUIManager::renderLoop(std::shared_ptr<EffectChain> effectChain) {
     auto gain = effectChain->getEffectByType<GainEffect>();
     auto echo = effectChain->getEffectByType<EchoEffect>();
     auto dist = effectChain->getEffectByType<DistortionEffect>();
+    auto reverb = effectChain->getEffectByType<ReverbEffect>();
+    auto pitch = effectChain->getEffectByType<PitchShifterEffect>();
+
+    // Visualization setup
+    extern Visualizer* gVisualizer;
+    static bool visualizerInit = false;
+    if (!visualizerInit) {
+        if (!gVisualizer) gVisualizer = new Visualizer(44100, 500);
+        visualizerInit = true;
+    }
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
@@ -90,6 +104,30 @@ void GUIManager::renderLoop(std::shared_ptr<EffectChain> effectChain) {
         if (dist) {
             float d = dist->drive_.load();
             if (ImGui::SliderFloat("Drive", &d, 0.5f, 5.0f)) dist->drive_.store(d);
+        }
+
+        ImGui::Separator();
+        if (reverb) {
+            static float roomSize = 0.5f, damping = 0.5f, wet = 0.3f, dry = 0.7f;
+            ImGui::Text("Reverb");
+            if (ImGui::SliderFloat("Room Size", &roomSize, 0.0f, 1.0f)) reverb->setRoomSize(roomSize);
+            if (ImGui::SliderFloat("Damping", &damping, 0.0f, 1.0f)) reverb->setDamping(damping);
+            if (ImGui::SliderFloat("Wet", &wet, 0.0f, 1.0f)) reverb->setWet(wet);
+            if (ImGui::SliderFloat("Dry", &dry, 0.0f, 1.0f)) reverb->setDry(dry);
+        }
+        ImGui::Separator();
+        if (pitch) {
+            static float semitones = 0.0f;
+            ImGui::Text("Pitch Shifter");
+            if (ImGui::SliderFloat("Semitones", &semitones, -12.0f, 12.0f)) pitch->setSemitones(semitones);
+        }
+        ImGui::Separator();
+        // Visualization
+        ImGui::Text("Waveform Visualization");
+        static std::vector<float> waveform;
+        waveform = gVisualizer ? gVisualizer->getWaveform() : std::vector<float>();
+        if (!waveform.empty()) {
+            ImGui::PlotLines("Waveform", waveform.data(), (int)waveform.size(), 0, nullptr, -1.0f, 1.0f, ImVec2(480, 80));
         }
         ImGui::End();
 

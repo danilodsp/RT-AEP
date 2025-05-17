@@ -1,4 +1,7 @@
 
+#include "../visualization/Visualizer.hpp"
+extern Visualizer* gVisualizer;
+
 #include "AudioEngine.hpp"
 #include <memory>
 
@@ -12,6 +15,8 @@ std::shared_ptr<EffectChain> AudioEngine::getEffectChain() { return effectChain_
 #include "effects/GainEffect.hpp"
 #include "effects/EchoEffect.hpp"
 #include "effects/DistortionEffect.hpp"
+#include "effects/ReverbEffect.hpp"
+#include "effects/PitchShifterEffect.hpp"
 
 // Constructor: initializes members
 AudioEngine::AudioEngine() : stream_(nullptr), running_(false) {
@@ -83,7 +88,6 @@ bool AudioEngine::stop() {
     return true;
 }
 
-// PortAudio callback: process audio through EffectChain
 int AudioEngine::paCallback(const void* input, void* output,
                            unsigned long frameCount,
                            const PaStreamCallbackTimeInfo* /*timeInfo*/,
@@ -101,6 +105,12 @@ int AudioEngine::paCallback(const void* input, void* output,
     if (engine && engine->effectChain_) {
         // Cast away const for input (safe: not modified)
         engine->effectChain_->process(const_cast<float*>(in), out, frameCount, 2);
+        // Visualization: push audio to visualizer if available
+        // (Assume a static/global visualizer pointer for now, to be improved)
+        extern Visualizer* gVisualizer;
+        if (gVisualizer) {
+            gVisualizer->pushAudio(out, frameCount * 2); // stereo
+        }
     } else {
         std::memcpy(out, in, frameCount * 2 * sizeof(float));
     }
@@ -113,6 +123,8 @@ void AudioEngine::setupDefaultEffects() {
     effectChain_->addEffect(std::make_shared<GainEffect>(1.0f));
     effectChain_->addEffect(std::make_shared<EchoEffect>(500, 0.4f));
     effectChain_->addEffect(std::make_shared<DistortionEffect>(1.5f));
+    effectChain_->addEffect(std::make_shared<ReverbEffect>(44100.0f));
+    effectChain_->addEffect(std::make_shared<PitchShifterEffect>(44100.0f));
 }
 
 // Print PortAudio version, device names, and latency
