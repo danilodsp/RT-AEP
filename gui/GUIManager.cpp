@@ -37,6 +37,22 @@ bool GUIManager::initialize() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
+    // Customize ImGui style
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 8.0f;
+    style.FrameRounding = 6.0f;
+    style.GrabRounding = 6.0f;
+    style.ScrollbarRounding = 6.0f;
+    style.WindowBorderSize = 1.0f;
+    style.FrameBorderSize = 1.0f;
+    // Example color customization
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.18f, 1.00f);
+    colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.10f, 0.12f, 1.00f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.13f, 0.14f, 0.18f, 1.00f);
+    colors[ImGuiCol_Button] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.30f, 0.36f, 1.00f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
     ImGui_ImplGlfw_InitForOpenGL(window_, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     initialized_ = true;
@@ -54,7 +70,11 @@ void GUIManager::renderLoop(std::shared_ptr<EffectChain> effectChain) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::Begin("RT-AEP Control Panel");
+
+        // Draw only the ImGui window
+        ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(520, 320), ImGuiCond_Once);
+        ImGui::Begin("RT-AEP Control Panel", nullptr, ImGuiWindowFlags_NoCollapse);
         if (gain) {
             float g = gain->gain_.load();
             if (ImGui::SliderFloat("Gain", &g, 0.0f, 2.0f)) gain->gain_.store(g);
@@ -72,11 +92,13 @@ void GUIManager::renderLoop(std::shared_ptr<EffectChain> effectChain) {
             if (ImGui::SliderFloat("Drive", &d, 0.5f, 5.0f)) dist->drive_.store(d);
         }
         ImGui::End();
+
         ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window_, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        ImGuiStyle& style = ImGui::GetStyle();
+        glClearColor(style.Colors[ImGuiCol_WindowBg].x, style.Colors[ImGuiCol_WindowBg].y, style.Colors[ImGuiCol_WindowBg].z, style.Colors[ImGuiCol_WindowBg].w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window_);
