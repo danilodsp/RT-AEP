@@ -27,13 +27,16 @@ Real-Time Audio Effects Processor (RT-AEP)
 
 This project requires PortAudio. If CMake cannot find PortAudio automatically, set the `PORTAUDIO_PATH` environment variable to the PortAudio installation directory (containing `include` and `lib`).
 
-### Build Steps
+
+### Build Steps (MSVC/Visual Studio)
 
 ```powershell
-git clone https://github.com/danilodsp/RT-AEP.git
-cd RT-AEP
-mkdir build
-cd build
-cmake ..
-cmake --build .
+# Clean previous build
+Remove-Item -Recurse -Force .\build\
+
+# Configure with MSVC
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+# Build in Release mode
+cmake --build build --config Release
 ```
